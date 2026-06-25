@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>نشاط التوصيل التفاعلي المطور للموبايل</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght=700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            background-color: #f7f9f7;
+            font-family: 'Noto Naskh Arabic', serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 8px;
+            position: relative;
+        }
+
+        .main-frame {
+            background-color: #ffffff;
+            border: 5px solid #4caf50;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 1024px;
+            height: 96vh;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.06);
+            position: relative;
+            z-index: 2;
+        }
+
+        /* رأس النشاط */
+        .header-box {
+            background-color: #fffde7;
+            border: 2px dashed #ffd54f;
+            border-radius: 14px;
+            padding: 12px 15px;
+            text-align: right;
+            font-size: 1.3rem;
+            color: #e65100;
+            font-weight: 700;
+            line-height: 1.6;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        /* منطقة اللعب */
+        .game-area {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 45px; 
+            min-height: 0;
+            padding: 10px 5px;
+        }
+
+        /* توزيع الأعمدة طُولياً */
+        .column {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around; 
+            height: 100%;
+            width: 48%; 
+            z-index: 2;
+        }
+
+        /* كروت العبارات والنصوص */
+        .text-card {
+            background: #ffffff;
+            border: 4px solid #4caf50;
+            border-radius: 20px;
+            padding: 20px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.03);
+            transition: all 0.2s ease;
+            min-height: 150px; 
+        }
+
+        .text-card.selected {
+            background-color: #fffde7;
+            border-color: #ffd54f;
+        }
+
+        .text-phrase {
+            font-size: 2rem; 
+            color: #2c3e50;
+            font-weight: 700;
+            line-height: 1.7;
+            flex: 1;
+            text-align: center;
+            padding-left: 10px;
+        }
+
+        .letter-b {
+            color: #e53935;
+        }
+
+        /* حاوية الصور */
+        .character-container {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            min-height: 160px; 
+        }
+
+        .character-container img {
+            width: 170px; 
+            height: 170px;
+            object-fit: contain;
+            background-color: transparent;
+            filter: drop-shadow(0px 8px 12px rgba(0,0,0,0.12));
+            transition: transform 0.2s ease;
+        }
+
+        .character-container.highlight img {
+            transform: scale(1.06); 
+        }
+
+        /* النقاط الصفراء التفاعلية للعبارات */
+        .dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #ffeb3b;
+            border: 4px solid #ffffff;
+            box-shadow: 0 0 0 4px #fbc02d;
+            z-index: 10;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        /* طبقات الـ SVG والملاحظات */
+        .svg-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .feedback-marks-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .feedback-mark {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            font-size: 2.2rem;
+            background: #ffffff;
+            border-radius: 50%;
+            width: 55px;
+            height: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+        }
+
+        /* أزرار التحكم السفلية */
+        .footer-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+            flex-shrink: 0;
+        }
+
+        .control-btn {
+            font-family: 'Noto Naskh Arabic', serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            color: #ffffff;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.15);
+            transition: transform 0.1s;
+        }
+
+        .control-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-check { background-color: #2196f3; }
+        .btn-reset { background-color: #4caf50; }
+        .btn-exit { background-color: #f44336; }
+
+        /* 🎈 عناصر وتأثيرات الاحتفال والبوالين 🎈 */
+        .celebration-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+            overflow: hidden;
+            display: none;
+        }
+
+        .balloon {
+            position: absolute;
+            bottom: -100px;
+            width: 50px;
+            height: 65px;
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            animation: floatUp 4s linear forwards;
+        }
+        .balloon::after {
+            content: "▲";
+            font-size: 8px;
+            color: inherit;
+            position: absolute;
+            bottom: -5px;
+            left: 20px;
+        }
+
+        .confetti {
+            position: absolute;
+            top: -20px;
+            width: 10px;
+            height: 10px;
+            animation: rainDown 3s linear forwards;
+        }
+
+        .gift-box {
+            position: absolute;
+            font-size: 3.5rem;
+            bottom: -80px;
+            animation: giftPop 2.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-110vh) rotate(20deg); opacity: 0; }
+        }
+
+        @keyframes rainDown {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(105vh) rotate(360deg); opacity: 0; }
+        }
+
+        @keyframes giftPop {
+            0% { bottom: -80px; transform: scale(0.5) rotate(0deg); }
+            50% { bottom: 40%; transform: scale(1.2) rotate(15deg); }
+            70% { transform: scale(1) rotate(-15deg); }
+            100% { bottom: 35%; transform: scale(1) rotate(0deg); opacity: 0.9; }
+        }
+
+        /* 📱 شاشات الموبايل والمتجاوبة */
+        @media (max-width: 768px) {
+            .main-frame {
+                height: 97vh;
+                padding: 10px;
+                border-width: 4px;
+            }
+            .header-box {
+                font-size: 1rem;
+                padding: 8px 12px;
+                margin-bottom: 5px;
+            }
+            .game-area {
+                gap: 25px; 
+            }
+            .column {
+                width: 48%;
+                gap: 10px;
+            }
+            .text-card {
+                padding: 15px 8px;
+                min-height: 135px; 
+                border-radius: 16px;
+            }
+            .text-phrase {
+                font-size: 1.4rem; 
+                line-height: 1.6;
+            }
+            .character-container {
+                min-height: 140px;
+            }
+            .character-container img {
+                width: 135px; 
+                height: 135px;
+            }
+            .dot {
+                width: 26px;
+                height: 26px;
+                border-width: 3px;
+                box-shadow: 0 0 0 3px #fbc02d;
+            }
+            .control-btn {
+                padding: 10px 18px;
+                font-size: 1.05rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="applauseAudio" src="audio.mp3" preload="auto"></audio>
+
+    <div class="celebration-overlay" id="celebrationOverlay"></div>
+
+    <div class="main-frame">
+        <div class="header-box">
+            ٢. أَصِلُ الْكَلَامَ بِصَاحِبِهِ بِوَصْلِ النُّقْطَةِ الصَّفْرَاءِ بِمَا يُنَاسِبُهَا:
+        </div>
+
+        <div class="game-area" id="gameArea">
+            <svg class="svg-layer" id="svgLayer"></svg>
+            <div class="feedback-marks-layer" id="marksLayer"></div>
+
+            <div class="column">
+                <div class="text-card" data-correct-char="badr" id="phrase-1">
+                    <span class="text-phrase">أَنَا أُحِـ<span class="letter-b">بُّ</span> أَبِي وَأُمِّي</span>
+                    <div class="dot text-dot" data-type="text" data-id="phrase-1"></div>
+                </div>
+                
+                <div class="text-card" data-correct-char="abeer" id="phrase-2">
+                    <span class="text-phrase">وَأَنَا مِثْلُكَ أُحِـ<span class="letter-b">بُّ</span>هُمَا وَأُحِـ<span class="letter-b">بُّ</span> جَدِّي وَجَدَّتِي</span>
+                    <div class="dot text-dot" data-type="text" data-id="phrase-2"></div>
+                </div>
+            </div>
+
+            <div class="column">
+                <div class="character-container" data-char="abeer" id="card-abeer">
+                    <img src="abeer.png" alt="عبير">
+                </div>
+                
+                <div class="character-container" data-char="badr" id="card-badr">
+                    <img src="badr.png" alt="بدر">
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-controls">
+            <button class="control-btn btn-exit" onclick="console.log('خروج')">خُرُوج</button>
+            <button class="control-btn btn-reset" onclick="resetActivity()">إِعَادَةُ السُّؤَالِ</button>
+            <button class="control-btn btn-check" onclick="checkAnswers()">تَحَقَّقْ مِنَ الإِجَابَةِ</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedTextCard = null;
+        const activeConnections = {}; 
+
+        const lineColors = {
+            badr: '#4caf50',   
+            abeer: '#e91e63'   
+        };
+
+        let draggingDot = null;
+        let tempLine = null;
+
+        // التوصيل بالضغط المباشر
+        document.querySelectorAll('.text-card').forEach(card => {
+            card.addEventListener('pointerdown', (e) => {
+                if (e.target.classList.contains('dot')) return;
+                document.querySelectorAll('.text-card').forEach(c => c.classList.remove('selected'));
+                selectedTextCard = card;
+                card.classList.add('selected');
+            });
+        });
+
+        document.querySelectorAll('.character-container').forEach(card => {
+            card.addEventListener('pointerdown', (e) => {
+                if (!selectedTextCard) return;
+
+                const textId = selectedTextCard.id;
+                const charId = card.dataset.char;
+
+                for (let key in activeConnections) {
+                    if (activeConnections[key] === charId || key === textId) {
+                        delete activeConnections[key];
+                    }
+                }
+
+                activeConnections[textId] = charId;
+                selectedTextCard.classList.remove('selected');
+                selectedTextCard = null;
+
+                document.getElementById('marksLayer').innerHTML = ''; 
+                drawConnectingLines();
+            });
+        });
+
+        // نظام السحب من النقاط الصفراء
+        document.querySelectorAll('.dot').forEach(dot => {
+            dot.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                draggingDot = dot;
+                dot.setPointerCapture(e.pointerId);
+                
+                if (!tempLine) {
+                    tempLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    tempLine.setAttribute('stroke-width', window.innerWidth < 768 ? '4' : '5');
+                    tempLine.setAttribute('stroke', '#ffd54f');
+                    tempLine.setAttribute('stroke-dasharray', '6,4');
+                    document.getElementById('svgLayer').appendChild(tempLine);
+                }
+            });
+
+            dot.addEventListener('pointermove', (e) => {
+                if (!draggingDot) return;
+                
+                const gameArea = document.getElementById('gameArea');
+                const rect = gameArea.getBoundingClientRect();
+                const startRect = draggingDot.getBoundingClientRect();
+
+                let x1 = startRect.left + startRect.width / 2 - rect.left;
+                let y1 = startRect.top + startRect.height / 2 - rect.top;
+                let x2 = e.clientX - rect.left;
+                let y2 = e.clientY - rect.top;
+
+                document.querySelectorAll('.character-container').forEach(cCard => {
+                    const cRect = cCard.getBoundingClientRect();
+                    const targetX = cRect.left + cRect.width / 2 - rect.left;
+                    const targetY = cRect.top + cRect.height / 2 - rect.top;
+                    const distance = Math.hypot(x2 - targetX, y2 - targetY);
+                    
+                    if (distance < 110) { 
+                        x2 = targetX;
+                        y2 = targetY;
+                        cCard.classList.add('highlight');
+                    } else {
+                        cCard.classList.remove('highlight');
+                    }
+                });
+
+                tempLine.setAttribute('x1', x1);
+                tempLine.setAttribute('y1', y1);
+                tempLine.setAttribute('x2', x2);
+                tempLine.setAttribute('y2', y2);
+            });
+
+            dot.addEventListener('pointerup', (e) => {
+                if (!draggingDot) return;
+                
+                if (tempLine) {
+                    tempLine.remove();
+                    tempLine = null;
+                }
+
+                const gameArea = document.getElementById('gameArea');
+                const rect = gameArea.getBoundingClientRect();
+                
+                let snappedCharCard = null;
+                let closestDistance = 110; 
+
+                document.querySelectorAll('.character-container').forEach(cCard => {
+                    cCard.classList.remove('highlight');
+                    const cRect = cCard.getBoundingClientRect();
+                    const targetX = cRect.left + cRect.width / 2 - rect.left;
+                    const targetY = cRect.top + cRect.height / 2 - rect.top;
+                    const currentX = e.clientX - rect.left;
+                    const currentY = e.clientY - rect.top;
+                    const distance = Math.hypot(currentX - targetX, currentY - targetY);
+
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        snappedCharCard = cCard;
+                    }
+                });
+
+                if (snappedCharCard) {
+                    const textCard = draggingDot.closest('.text-card');
+
+                    for (let key in activeConnections) {
+                        if (activeConnections[key] === snappedCharCard.dataset.char || key === textCard.id) {
+                            delete activeConnections[key];
+                        }
+                    }
+                    activeConnections[textCard.id] = snappedCharCard.dataset.char;
+                    document.getElementById('marksLayer').innerHTML = ''; 
+                }
+
+                draggingDot.releasePointerCapture(e.pointerId);
+                draggingDot = null;
+                drawConnectingLines();
+            });
+        });
+
+        // رسم خطوط التوصيل
+        function drawConnectingLines() {
+            const svg = document.getElementById('svgLayer');
+            svg.innerHTML = '';
+            const areaRect = document.getElementById('gameArea').getBoundingClientRect();
+
+            document.querySelectorAll('.text-card').forEach(c => {
+                c.style.borderColor = '#4caf50';
+                c.style.backgroundColor = '#ffffff';
+            });
+            document.querySelectorAll('.character-container').forEach(c => c.classList.remove('highlight'));
+
+            for (let textId in activeConnections) {
+                const charId = activeConnections[textId];
+                const textCard = document.getElementById(textId);
+                const charCard = document.getElementById(`card-${charId}`);
+
+                if (!textCard || !charCard) continue;
+
+                const textDot = textCard.querySelector('.text-dot').getBoundingClientRect();
+                const charRect = charCard.getBoundingClientRect();
+
+                const x1 = textDot.left + textDot.width / 2 - areaRect.left;
+                const y1 = textDot.top + textDot.height / 2 - areaRect.top;
+                const x2 = charRect.left + charRect.width / 2 - areaRect.left;
+                const y2 = charRect.top + charRect.height / 2 - areaRect.top;
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('id', `line-${textId}`);
+                line.setAttribute('x1', x1);
+                line.setAttribute('y1', y1);
+                line.setAttribute('x2', x2);
+                line.setAttribute('y2', y2);
+                line.setAttribute('stroke', lineColors[charId]);
+                line.setAttribute('stroke-width', window.innerWidth < 768 ? '4' : '5');
+                line.setAttribute('stroke-linecap', 'round');
+
+                svg.appendChild(line);
+                textCard.style.borderColor = lineColors[charId];
+                charCard.classList.add('highlight');
+            }
+        }
+
+        // دالة التحقق التعليمية وتوليد الاحتفالات والصوت عند النجاح الكامل
+        function checkAnswers() {
+            const keys = Object.keys(activeConnections);
+            if (keys.length < 2) return; 
+
+            const marksLayer = document.getElementById('marksLayer');
+            marksLayer.innerHTML = ''; 
+            const areaRect = document.getElementById('gameArea').getBoundingClientRect();
+            let allCorrect = true;
+
+            keys.forEach(textId => {
+                const textCard = document.getElementById(textId);
+                const charCard = document.getElementById(`card-${activeConnections[textId]}`);
+                const userConnectedChar = activeConnections[textId];
+                const line = document.getElementById(`line-${textId}`);
+                
+                const textDotRect = textCard.querySelector('.text-dot').getBoundingClientRect();
+                const charRect = charCard.getBoundingClientRect();
+                
+                const x1 = textDotRect.left + textDotRect.width / 2;
+                const y1 = textDotRect.top + textDotRect.height / 2;
+                const x2 = charRect.left + charRect.width / 2;
+                const y2 = charRect.top + charRect.height / 2;
+
+                const targetX = (x1 + x2) / 2 - areaRect.left;
+                const targetY = (y1 + y2) / 2 - areaRect.top;
+
+                const markElement = document.createElement('div');
+                markElement.className = 'feedback-mark';
+                markElement.style.left = `${targetX}px`;
+                markElement.style.top = `${targetY}px`;
+
+                if (textCard.dataset.correctChar === userConnectedChar) {
+                    textCard.style.backgroundColor = '#e8f5e9'; 
+                    textCard.style.borderColor = '#4caf50';
+                    if (line) line.setAttribute('stroke', '#4caf50');
+                    markElement.innerText = '✅';
+                } else {
+                    textCard.style.backgroundColor = '#ffebee'; 
+                    textCard.style.borderColor = '#f44336';
+                    if (line) line.setAttribute('stroke', '#f44336');
+                    markElement.innerText = '❌';
+                    allCorrect = false;
+                }
+
+                marksLayer.appendChild(markElement);
+            });
+
+            if (allCorrect) {
+                triggerCelebration();
+            }
+        }
+
+        // دالة إنشاء البوالينات والقصاصات الملونة وتشغيل صوت تصفيق
+        function triggerCelebration() {
+            const overlay = document.getElementById('celebrationOverlay');
+            overlay.innerHTML = '';
+            overlay.style.display = 'block';
+
+            // تشغيل صوت التصفيق الخارجي
+            const audio = document.getElementById('applauseAudio');
+            audio.currentTime = 0;
+            audio.play().catch(err => console.log("تنبيه الصوت: يتطلب تفاعل المستخدم أولاً"));
+
+            const colors = ['#ff5722', '#e91e63', '#9c27b0', '#2196f3', '#4caf50', '#ffeb3b', '#00bcd4'];
+            const gifts = ['🎁', '🎉', '🧸', '🎈', '⭐'];
+
+            // 1. توليد البالونات
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    const balloon = document.createElement('div');
+                    balloon.className = 'balloon';
+                    balloon.style.left = Math.random() * 90 + '%';
+                    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                    balloon.style.backgroundColor = randomColor;
+                    balloon.style.color = randomColor;
+                    balloon.style.animationDelay = Math.random() * 2 + 's';
+                    overlay.appendChild(balloon);
+                }, i * 150);
+            }
+
+            // 2. توليد قصاصات الورق الملونة
+            for (let i = 0; i < 60; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0%';
+                overlay.appendChild(confetti);
+            }
+
+            // 3. توليد الهدايا الطائرة المفاجئة للطفل
+            for (let i = 0; i < 4; i++) {
+                const gift = document.createElement('div');
+                gift.className = 'gift-box';
+                gift.innerText = gifts[Math.floor(Math.random() * gifts.length)];
+                gift.style.left = (20 + i * 20) + '%';
+                gift.style.animationDelay = (i * 0.3) + 's';
+                overlay.appendChild(gift);
+            }
+        }
+
+        // تفريغ وتصفير النشاط وإخفاء الاحتفالات
+        function resetActivity() {
+            for (let key in activeConnections) delete activeConnections[key];
+            document.getElementById('svgLayer').innerHTML = '';
+            document.getElementById('marksLayer').innerHTML = '';
+            document.getElementById('celebrationOverlay').style.display = 'none';
+            document.getElementById('celebrationOverlay').innerHTML = '';
+            
+            const audio = document.getElementById('applauseAudio');
+            audio.pause();
+            audio.currentTime = 0;
+
+            document.querySelectorAll('.text-card').forEach(card => {
+                card.style.borderColor = '#4caf50';
+                card.style.backgroundColor = '#ffffff';
+                card.classList.remove('selected');
+            });
+            document.querySelectorAll('.character-container').forEach(c => c.classList.remove('highlight'));
+            selectedTextCard = null;
+        }
+
+        window.addEventListener('resize', () => {
+            drawConnectingLines();
+            document.getElementById('marksLayer').innerHTML = ''; 
+        });
+    </script>
+</body>
+</html>
